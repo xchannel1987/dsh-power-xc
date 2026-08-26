@@ -1,0 +1,5 @@
+# dsh-power-xc bundle patch: mount into the profile.
+- insert:
+    - id: dsh-power-xc
+      name: 'dsh-power-xc'
+
