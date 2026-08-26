@@ -72,10 +72,7 @@
     "node": ">=22.19"
   },
   "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/keyiadiannao/dsh-power-button.git"
-  },
+  "repository": null,
   "keywords": [
     "dsh",
     "deepseek-harness",
@@ -86,8 +83,6 @@
     "client-plugin",
     "dsh-plugin"
   ],
-  "bugs": {
-    "url": "https://github.com/keyiadiannao/dsh-power-button/issues"
-  },
-  "homepage": "https://github.com/keyiadiannao/dsh-power-button#readme"
+  "bugs": null,
+  "homepage": null
 }
