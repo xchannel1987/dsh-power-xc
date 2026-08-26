@@ -12,6 +12,7 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import type { PropsLocale } from '@deepseek-ai/dsh-client-ui-slots'
 import type {} from '@deepseek-ai/dsh-client-ui-slots'
+import { Tooltip } from '@deepseek-ai/dsh-client-ui-primitives'
 import { beginPower, getRestartPhase, onRestartChange, NS } from './index.ts'
 import { ShutdownConfirm } from './ShutdownConfirm.tsx'
 import { motion, radius, shadow } from './theme.ts'
@@ -101,6 +102,17 @@ export function RestartButton(props: RestartButtonProps): JSX.Element {
   return (
     <>
       <style>{powerKeyframes}</style>
+      {/* Sidebar-footer power trigger. Hover tooltip is the DSH-native bubble
+          (same Tooltip as the adjacent New Session / fold buttons): hidden in
+          wide mode where the text label is already visible (native "disabled:
+          wide" convention), and it follows the flow state when busy. The
+          aria-label carries the same text (icon-only rail convention, mirroring
+          native buttons whose tooltip text doubles as the accessible name). */}
+      <Tooltip
+        label={busy ? t('powerBusy') : t('powerTitle')}
+        delayMs={500}
+        disabled={props.wide}
+      >
       <button
         ref={btnRef}
         type="button"
@@ -108,8 +120,8 @@ export function RestartButton(props: RestartButtonProps): JSX.Element {
         onClick={() => { if (!busy) setOpen(o => !o) }}
         aria-haspopup="menu"
         aria-expanded={open}
+        aria-label={busy ? t('powerBusy') : t('powerTitle')}
         disabled={busy}
-        title={busy ? t('powerBusy') : t('powerTitle')}
         style={{
           display: 'flex',
           alignItems: 'center',
@@ -153,6 +165,7 @@ export function RestartButton(props: RestartButtonProps): JSX.Element {
         )}
         {props.wide && <span>{t('power')}</span>}
       </button>
+      </Tooltip>
 
       {open ? (
         <div
@@ -168,8 +181,6 @@ export function RestartButton(props: RestartButtonProps): JSX.Element {
             background: 'var(--dsw-alias-bg-layer-2, rgba(24,28,38,0.97))',
             border: '1px solid var(--dsw-alias-border-l3, rgba(196,211,232,0.31))',
             boxShadow: shadow.surface,
-            backdropFilter: 'blur(12px)',
-            WebkitBackdropFilter: 'blur(12px)',
             fontFamily: 'inherit',
             fontSize: 14,
             color: 'var(--dsw-alias-label-primary, #f2f6fc)',
@@ -251,11 +262,10 @@ function MenuItem({ label, title, hint, danger, onClick, glyph }: {
   const dangerHover = danger
     ? 'color-mix(in srgb, var(--dsw-alias-state-error-primary, #ff8592) 10%, var(--dsw-alias-bg-layer-2, rgba(24,28,38,0.97)))'
     : 'var(--dsw-alias-interactive-bg-hover, rgba(255,255,255,0.06))'
-  return (
+  const item = (
     <button
       type="button"
       role="menuitem"
-      title={title}
       onClick={onClick}
       style={{
         display: 'flex',
@@ -291,13 +301,26 @@ function MenuItem({ label, title, hint, danger, onClick, glyph }: {
       </span>
     </button>
   )
+  // The item's hover tooltip is the same DSH-native bubble as the trigger
+  // button (default right side, 500ms hover delay) — replaces the old browser
+  // title attribute.
+  return title === undefined
+    ? item
+    : (
+      <Tooltip label={title} delayMs={500}>
+        {item}
+      </Tooltip>
+    )
 }
 
-/** Plugin-owned keyframes (self-contained; namespaced to avoid collisions). */
+/** Plugin-owned keyframes (self-contained; namespaced to avoid collisions).
+ *  Menu entrance is a pure opacity fade — no transform. A transform (even a
+ *  short entrance slide) would make this container the containing block for
+ *  the position:fixed tooltip bubble rendered inside it, mispositioning it. */
 export const powerKeyframes = `
   @keyframes dsh-power-menu-in {
-    from { opacity: 0; transform: translateY(4px); }
-    to   { opacity: 1; transform: translateY(0); }
+    from { opacity: 0; }
+    to   { opacity: 1; }
   }
   @keyframes dsh-power-btn-spin {
     to { transform: rotate(360deg); }
