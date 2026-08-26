@@ -24,6 +24,11 @@ const MENU_W = 212
 export function RestartButton(props: RestartButtonProps): JSX.Element {
   const { t } = props
   const [open, setOpen] = useState(false)
+  // Whether the menu was opened via keyboard (ArrowDown/ArrowUp on the trigger).
+  // WAI-ARIA menu-button moves focus into the menu only on KEYBOARD open; a
+  // mouse click must not steal focus — the native Tooltip bubbles on focus, so
+  // click-opening would pop the first item's tooltip as a side effect.
+  const [openViaKeyboard, setOpenViaKeyboard] = useState(false)
   // Shutdown is irreversible (the process exits and must be started manually),
   // so it always passes through a confirm dialog before beginPower('shutdown').
   const [confirming, setConfirming] = useState(false)
@@ -36,11 +41,15 @@ export function RestartButton(props: RestartButtonProps): JSX.Element {
   const busy = phase !== 'idle' && phase !== 'error'
 
   // Close on outside click or Escape; move focus into the menu on open and
-  // back to the trigger on close (WAI-ARIA menu-button pattern).
+  // back to the trigger on close (WAI-ARIA menu-button pattern). Focus moves
+  // into the menu only when opened by keyboard — a mouse click leaves focus on
+  // the trigger (otherwise the first item's native Tooltip would pop on click).
   useEffect(() => {
     if (!open) return
-    const firstItem = menuRef.current?.querySelector<HTMLButtonElement>('[role="menuitem"]')
-    firstItem?.focus()
+    if (openViaKeyboard) {
+      const firstItem = menuRef.current?.querySelector<HTMLButtonElement>('[role="menuitem"]')
+      firstItem?.focus()
+    }
     const onDown = (e: MouseEvent): void => {
       const t = e.target as Node
       if (btnRef.current?.contains(t) || menuRef.current?.contains(t)) return
@@ -68,7 +77,7 @@ export function RestartButton(props: RestartButtonProps): JSX.Element {
       document.removeEventListener('mousedown', onDown)
       document.removeEventListener('keydown', onKey)
     }
-  }, [open])
+  }, [open, openViaKeyboard])
 
   const pick = (action: 'restart' | 'shutdown'): void => {
     setOpen(false)
@@ -103,21 +112,28 @@ export function RestartButton(props: RestartButtonProps): JSX.Element {
     <>
       <style>{powerKeyframes}</style>
       {/* Sidebar-footer power trigger. Hover tooltip is the DSH-native bubble
-          (same Tooltip as the adjacent New Session / fold buttons): hidden in
-          wide mode where the text label is already visible (native "disabled:
-          wide" convention), and it follows the flow state when busy. The
-          aria-label carries the same text (icon-only rail convention, mirroring
-          native buttons whose tooltip text doubles as the accessible name). */}
+          (same Tooltip as the adjacent New Session / fold buttons), always
+          available in both rail and wide mode, and it follows the flow state
+          when busy. The aria-label carries the same text (icon-only rail
+          convention, mirroring native buttons whose tooltip text doubles as
+          the accessible name). */}
       <Tooltip
         label={busy ? t('powerBusy') : t('powerTitle')}
         delayMs={500}
-        disabled={props.wide}
       >
       <button
         ref={btnRef}
         type="button"
         className="dsh-power-button"
-        onClick={() => { if (!busy) setOpen(o => !o) }}
+        onClick={() => { if (!busy) { setOpenViaKeyboard(false); setOpen(o => !o) } }}
+        onKeyDown={(e) => {
+          if (busy) return
+          if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+            e.preventDefault()
+            setOpenViaKeyboard(true)
+            setOpen(true)
+          }
+        }}
         aria-haspopup="menu"
         aria-expanded={open}
         aria-label={busy ? t('powerBusy') : t('powerTitle')}
