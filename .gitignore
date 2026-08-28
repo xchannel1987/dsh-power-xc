@@ -7,3 +7,6 @@ restart-helper.cmd
 PUBLISH_STATUS.md
 
 *.tmpdir/
+
+# Claude Code context file (local only)
+CLAUDE.md

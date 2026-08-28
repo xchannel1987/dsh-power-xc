@@ -1,5 +1,11 @@
 # dsh-power-xc
 
+[![npm version](https://img.shields.io/npm/v/dsh-power-xc.svg)](https://www.npmjs.com/package/dsh-power-xc)
+[![license](https://img.shields.io/npm/l/dsh-power-xc.svg)](https://github.com/keyiadiannao/dsh-power-xc/blob/main/LICENSE)
+[![downloads](https://img.shields.io/npm/dm/dsh-power-xc.svg)](https://www.npmjs.com/package/dsh-power-xc)
+[![DSH](https://img.shields.io/badge/DeepSeek-Harness-blue)](https://github.com/deepseek-ai/DeepSeek-Harness)
+
+
 [![license](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![DSH](https://img.shields.io/badge/DeepSeek-Harness-blue)](https://github.com/deepseek-ai/DeepSeek-Harness)
 

@@ -17,7 +17,10 @@
   },
   "files": [
     "lib",
-    "cordis.patch.yml"
+    "cordis.patch.yml",
+    "README.md",
+    "README.zh-CN.md",
+    "LICENSE"
   ],
   "dsh": {
     "bundle": {
@@ -73,7 +76,6 @@
     "node": ">=22.19"
   },
   "license": "MIT",
-  "repository": null,
   "keywords": [
     "dsh",
     "deepseek-harness",
@@ -84,6 +86,11 @@
     "client-plugin",
     "dsh-plugin"
   ],
-  "bugs": null,
-  "homepage": null
+  "bugs": {
+    "url": "https://github.com/keyiadiannao/dsh-power-xc/issues"
+  },
+  "homepage": "https://github.com/keyiadiannao/dsh-power-xc#readme",
+  "publishConfig": {
+    "access": "public"
+  }
 }
