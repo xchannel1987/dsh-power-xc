@@ -90,10 +90,14 @@
     "dsh-plugin"
   ],
   "bugs": {
-    "url": "https://github.com/keyiadiannao/dsh-power-xc/issues"
+    "url": "https://github.com/xchannel1987/dsh-power-xc/issues"
   },
-  "homepage": "https://github.com/keyiadiannao/dsh-power-xc#readme",
+  "homepage": "https://github.com/xchannel1987/dsh-power-xc#readme",
   "publishConfig": {
     "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xchannel1987/dsh-power-xc.git"
   }
 }
