@@ -9,7 +9,14 @@
 
 **DSH Power Management Plugin** — Elegant restart and shutdown functionality for DeepSeek Harness via Web UI.
 
+> This plugin is based on [dsh-power-button](https://github.com/keyiadiannao/dsh-power-button), with improvements and optimizations.
+
 ## ✨ Core Features
+
+### 🔄 Refresh Functionality
+- **Page Refresh**: Refresh the current browser page without restarting the DSH process
+- **Quick Recovery**: Quickly recover when page state is abnormal
+- **Lightweight Operation**: Unlike restart, refresh does not reload plugins and configuration, only refreshes the browser page
 
 ### 🔘 Sidebar Power Button
 - **Integrated Location**: Positioned in sidebar footer, alongside Settings button
@@ -62,7 +69,7 @@ Restart DSH after installation. A power button will appear in the sidebar footer
 
 ### Method 1: Web UI
 1. Click the power button in sidebar footer
-2. Select "Restart" or "Shutdown"
+2. Select "Refresh", "Restart" or "Shutdown"
 3. Confirm the action
 
 ### Method 2: Slash Commands
@@ -71,6 +78,22 @@ Restart DSH after installation. A power button will appear in the sidebar footer
 
 ### Method 3: Model Tool
 Request the model to restart DSH in conversation; it will invoke the `restart_harness` tool.
+
+## 🔄 Refresh vs Restart
+
+| Action | Refresh | Restart |
+|--------|---------|---------|
+| Reload plugins | ❌ | ✅ |
+| Reload config | ❌ | ✅ |
+| Process restart | ❌ | ✅ |
+| Page refresh | ✅ | ✅ |
+| Use case | Page state abnormal | Config/plugin changes |
+
+**Why do we need a refresh feature?**
+- When the page has display issues or is unresponsive, refresh can quickly recover
+- After changing DSH settings, refresh can immediately show the effect (some settings require restart)
+- Compared to restart, refresh is a lightweight operation that won't interrupt current agent tasks
+- Refresh doesn't reload plugins and configuration, suitable for scenarios where only page state needs updating
 
 ## ⚙️ How It Works
 
@@ -106,3 +129,4 @@ Page auto-reconnects
 - [GitHub](https://github.com/xchannel1987/dsh-power-xc)
 - [npm](https://www.npmjs.com/package/dsh-power-xc)
 - [Issues](https://github.com/xchannel1987/dsh-power-xc/issues)
+- [Original project dsh-power-button](https://github.com/keyiadiannao/dsh-power-button)

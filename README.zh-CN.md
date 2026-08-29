@@ -5,18 +5,38 @@
 
 [English](README.md) | [中文](README.zh-CN.md)
 
-[DeepSeek Harness](https://github.com/deepseek-ai/DeepSeek-Harness) 的自包含**电源与生命周期控制**插件:侧边栏底部**电源按钮** + 上拉**重启/关机**菜单 + 全屏过渡动画。重启/关机引擎内置在本插件中,**不依赖第三方插件**。
+[DeepSeek Harness](https://github.com/deepseek-ai/DeepSeek-Harness) 的自包含**电源与生命周期控制**插件:侧边栏底部**电源按钮** + 上拉**刷新/重启/关机**菜单 + 全屏过渡动画。重启/关机引擎内置在本插件中,**不依赖第三方插件**。
+
+> 本插件基于 [dsh-power-button](https://github.com/keyiadiannao/dsh-power-button) 开发，在其基础上进行了改进和优化。
 
 > 由 DeepSeek AI 辅助开发,发布前经人工 review。
 
 ## 功能
 
 - **侧边栏电源按钮**:注册到页脚操作位(`sidebar.footer.action`),主题自适应,外观与旁边的"设置"按钮一致
-- **重启/关机菜单** + Windows 关机风格全屏过渡动画;重启确认后页面自动刷新
+- **刷新/重启/关机菜单** + Windows 关机风格全屏过渡动画;重启确认后页面自动刷新
+- **刷新功能**:点击"刷新"菜单项即可刷新当前浏览器页面,用于页面状态异常时快速恢复,是比重启更轻量的操作
 - **自包含重启引擎**:写一个 detached 的 `.cjs` helper,等旧进程退出、端口释放后,用相同的 `execPath/execArgv/argv/cwd` 重新拉起 DSH。不使用 PowerShell、不使用 `taskkill`
 - **`/restart` 与 `/shutdown` 命令**,以及 **`restart_harness` 模型工具**(与 `anweat/dsh-restart` 同名;若名字已被其它插件占用则跳过注册)
 - **界面与宿主文案本地化**(中文 / English),跟随 profile 的 `locale.preference`
 - **启动清理**:自动清理运行目录下超过 7 天的 `restart-helper-*.log`
+
+## 刷新 vs 重启
+
+| 操作 | 刷新 | 重启 |
+|------|------|------|
+| 重载插件 | ❌ | ✅ |
+| 重载配置 | ❌ | ✅ |
+| 进程重启 | ❌ | ✅ |
+| 页面刷新 | ✅ | ✅ |
+| 适用场景 | 页面状态异常 | 配置/插件变更 |
+
+**为什么需要刷新功能？**
+
+- 当页面出现显示异常或响应迟缓时,刷新可以快速恢复
+- 修改 DSH 设置后,刷新可以立即看到效果(部分设置需要重启)
+- 相比重启,刷新是轻量级操作,不会中断当前的 agent 任务
+- 刷新不会重新加载插件和配置,适合仅需更新页面状态的场景
 
 ## 截图
 
@@ -24,9 +44,9 @@
 
 ![侧边栏底部的电源按钮](docs/screenshots/zh/power-button.png)
 
-**② 重启 / 关机菜单** —— 点击电源按钮展开，两个动作一次到位。
+**② 刷新 / 重启 / 关机菜单** —— 点击电源按钮展开，三个动作一次到位。
 
-![重启 / 关机菜单](docs/screenshots/zh/power-menu.png)
+![刷新 / 重启 / 关机菜单](docs/screenshots/zh/power-menu.png)
 
 **③ 关机确认对话框** —— 防误触设计：默认焦点在「取消」，只有显式确认才会真正停止进程。
 
@@ -69,6 +89,10 @@ dsh plugin --profile web add file:D:/workspace/dsh-power-xc/dsh-power-xc-0.1.0.t
 ## 工作原理
 
 ```
+点击电源 → 菜单 → 刷新
+[客户端] window.location.reload()
+         ↓ (仅刷新浏览器页面，不重启进程)
+
 点击电源 → 菜单 → 重启
 [宿主]   POST /api/dsh-power-xc/restart
          → 写 ~/.dsh/restart-helper-<pid>-<ts>.cjs
@@ -125,3 +149,5 @@ npm test             # vitest:marker 生命周期、delayMs 下限、argv 脱敏
 MIT。"detached helper 重新拉起"的思路参考了
 [anweat/dsh-restart](https://github.com/anweat/dsh-restart)(MIT);
 实现为独立编写(真实 .cjs 文件、无 PowerShell、动态端口),未复制其代码。
+
+本插件基于 [dsh-power-button](https://github.com/keyiadiannao/dsh-power-button) 开发，感谢原作者的工作。

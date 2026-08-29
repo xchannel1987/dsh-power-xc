@@ -9,7 +9,14 @@
 
 **DSH 电源管理插件** —— 为 DeepSeek Harness 提供优雅的重启和关机功能，支持 Web UI 一键操作。
 
+> 本插件基于 [dsh-power-button](https://github.com/keyiadiannao/dsh-power-button) 开发，在其基础上进行了改进和优化。
+
 ## ✨ 核心特性
+
+### 🔄 刷新功能
+- **页面刷新**：刷新当前浏览器页面，不重启 DSH 进程
+- **快速恢复**：当页面状态异常时，可通过刷新快速恢复
+- **轻量操作**：与重启不同，刷新不会重载插件和配置，仅刷新浏览器页面
 
 ### 🔘 侧边栏电源按钮
 - **集成位置**：位于侧边栏底部，与设置按钮并列
@@ -62,7 +69,7 @@ npm install dsh-power-xc
 
 ### 方式一：Web UI
 1. 点击侧边栏底部的电源按钮
-2. 选择「重启」或「关机」
+2. 选择「刷新」「重启」或「关机」
 3. 确认操作
 
 ### 方式二：斜杠命令
@@ -71,6 +78,21 @@ npm install dsh-power-xc
 
 ### 方式三：模型工具
 在对话中请求模型重启 DSH，模型会调用 `restart_harness` 工具。
+
+## 🔄 刷新 vs 重启
+
+| 操作 | 刷新 | 重启 |
+|------|------|------|
+| 重载插件 | ❌ | ✅ |
+| 重载配置 | ❌ | ✅ |
+| 进程重启 | ❌ | ✅ |
+| 页面刷新 | ✅ | ✅ |
+| 适用场景 | 页面状态异常 | 配置/插件变更 |
+
+**为什么需要刷新功能？**
+- 当页面出现显示异常或响应迟缓时，刷新可以快速恢复
+- 修改 DSH 设置后，刷新可以立即看到效果（部分设置需要重启）
+- 相比重启，刷新是轻量级操作，不会中断当前的 agent 任务
 
 ## ⚙️ 工作原理
 
@@ -106,3 +128,4 @@ npm install dsh-power-xc
 - [GitHub](https://github.com/xchannel1987/dsh-power-xc)
 - [npm](https://www.npmjs.com/package/dsh-power-xc)
 - [问题反馈](https://github.com/xchannel1987/dsh-power-xc/issues)
+- [原项目 dsh-power-button](https://github.com/keyiadiannao/dsh-power-button)
