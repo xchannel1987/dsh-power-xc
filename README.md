@@ -1,139 +1,108 @@
 # dsh-power-xc
 
 [![npm version](https://img.shields.io/npm/v/dsh-power-xc.svg)](https://www.npmjs.com/package/dsh-power-xc)
-[![license](https://img.shields.io/npm/l/dsh-power-xc.svg)](https://github.com/keyiadiannao/dsh-power-xc/blob/main/LICENSE)
+[![license](https://img.shields.io/npm/l/dsh-power-xc.svg)](https://github.com/xchannel1987/dsh-power-xc/blob/main/LICENSE)
 [![downloads](https://img.shields.io/npm/dm/dsh-power-xc.svg)](https://www.npmjs.com/package/dsh-power-xc)
 [![DSH](https://img.shields.io/badge/DeepSeek-Harness-blue)](https://github.com/deepseek-ai/DeepSeek-Harness)
 
+[中文](README.md) | [English](README_EN.md)
 
-[![license](https://img.shields.io/badge/license-MIT-green)](LICENSE)
-[![DSH](https://img.shields.io/badge/DeepSeek-Harness-blue)](https://github.com/deepseek-ai/DeepSeek-Harness)
+**DSH 电源管理插件** —— 为 DeepSeek Harness 提供优雅的重启和关机功能，支持 Web UI 一键操作。
 
-[English](README.md) | [中文](README.zh-CN.md)
+## ✨ 核心特性
 
-A self-contained **power & lifecycle controller** for [DeepSeek Harness](https://github.com/deepseek-ai/DeepSeek-Harness): a sidebar power button with a Restart / Shutdown menu and a full-screen transition overlay. The restart/shutdown engine is built into the plugin — no third-party dependencies.
+### 🔘 侧边栏电源按钮
+- **集成位置**：位于侧边栏底部，与设置按钮并列
+- **主题感知**：自动适配当前主题风格
+- **一键访问**：无需命令行，点击即可操作
 
-> Developed with DeepSeek AI assistance; reviewed before release.
+### 🔄 重启功能
+- **平滑过渡**：Windows 风格全屏过渡动画
+- **自动重连**：重启完成后页面自动刷新
+- **会话保持**：优雅处理会话刷新，避免数据丢失
+- **独立引擎**：内置重启引擎，无外部依赖
 
-## Features
+### ⏻ 关机功能
+- **确认对话框**：防止误操作，默认焦点在取消按钮
+- **进度展示**：全屏显示关机进度
+- **安全退出**：确保所有资源正确释放
 
-- **Sidebar power button** in the footer action slot, theme-aware and styled to match the adjacent Settings trigger.
-- **Restart / Shutdown menu** with a Windows-style full-screen transition overlay; the page auto-reloads after a confirmed restart.
-- **Self-contained restart engine**: writes a detached `.cjs` helper that waits for the old process to exit and the port to free, then relaunches DSH with the same `execPath/execArgv/argv/cwd`. No PowerShell, no `taskkill`.
-- **`/restart` and `/shutdown` commands**, plus a **`restart_harness` model tool** (same name as `anweat/dsh-restart`; registration is skipped when another plugin already owns the name).
-- **Localized UI and host notices** (zh / en), following the profile's `locale.preference`.
-- **Startup housekeeping**: `restart-helper-*.log` files older than 7 days are pruned from the runtime directory.
+### 🛠️ 重启引擎设计
+- **自包含**：无需 PowerShell、无需 taskkill
+- **独立进程**：派生分离的 .cjs helper 进程
+- **端口等待**：等待旧进程退出并释放端口
+- **命令保留**：保持原 execPath/execArgv/argv/cwd
 
-## Screenshots
+### 📣 命令支持
+- **模型工具**：`restart_harness` 工具，可在对话中调用
+- **斜杠命令**：`/restart` 和 `/shutdown` 命令
+- **兼容性**：自动跳过已被其他插件注册的命令
 
-**① Sidebar power button** — a theme-aware footer entry, styled to match the adjacent Settings trigger.
+### 🌐 国际化
+- **中英文支持**：跟随 profile 的 `locale.preference`
+- **本地化通知**：重启/关机状态提示
 
-![Power button in the sidebar footer](docs/screenshots/en/power-button.png)
+### 🧹 自动清理
+- **日志清理**：自动清理 7 天前的 restart-helper 日志
+- **资源管理**：避免日志文件堆积
 
-**② Restart / Shutdown menu** — opens from the power button; two actions, one click away.
+## 📦 安装
 
-![Restart / Shutdown menu](docs/screenshots/en/power-menu.png)
+```bash
+# 使用 DSH CLI
+dsh plugin --profile web add dsh-power-xc
 
-**③ Shutdown confirm dialog** — guard against accidental shutdowns: the default focus sits on **Cancel**, and only an explicit confirm actually stops the process.
-
-![Shutdown confirm dialog](docs/screenshots/en/shutdown-confirm.png)
-
-**④ Shutdown progress overlay** — a Windows-style full-screen transition showing the current stage while the process winds down.
-
-![Shutdown progress overlay](docs/screenshots/en/shutdown-progress.png)
-
-**⑤ Restart completed toast** — after the page auto-reloads, a success notice confirms DSH is back.
-
-![Restart completed toast](docs/screenshots/en/restart-done.png)
-
-## Install
-
-```sh
-cd D:/workspace/dsh-power-xc && pnpm pack
-dsh plugin --profile web add file:D:/workspace/dsh-power-xc/dsh-power-xc-0.1.0.tgz
+# 或使用 npm
+npm install dsh-power-xc
 ```
 
-Restart DSH; a power button appears in the sidebar footer. Requires Node ≥ 22.19.
+安装后重启 DSH，侧边栏底部将出现电源按钮。
 
-## Configuration
+## 🎮 使用方式
 
-The plugin is configured through the profile's cordis layer (`cordis.patch.yml` or the settings UI):
+### 方式一：Web UI
+1. 点击侧边栏底部的电源按钮
+2. 选择「重启」或「关机」
+3. 确认操作
 
-| Key | Default | Meaning |
-|---|---|---|
-| `enableModelTool` | `true` | Register the `restart_harness` model tool. Set `false` to keep restart exclusively on the GUI button and `/restart`. |
-| `maxDelayMs` | `5000` | Upper bound (ms) for the model tool's `delayMs` argument. The effective floor is 1000 ms. |
+### 方式二：斜杠命令
+- 输入 `/restart` 重启 DSH
+- 输入 `/shutdown` 关闭 DSH
 
-Example:
+### 方式三：模型工具
+在对话中请求模型重启 DSH，模型会调用 `restart_harness` 工具。
 
-```yaml
-- id: dsh-power-xc
-  config:
-    enableModelTool: true
-```
-
-## How it works
+## ⚙️ 工作原理
 
 ```
-click power → menu → Restart
-[host]    POST /api/dsh-power-xc/restart
-          → write ~/.dsh/restart-helper-<pid>-<ts>.cjs
-          → spawn `node <helper>` (detached, windowsHide)
-[helper]  wait for old PID to exit → wait for port to free
-          → spawn DSH again with same execPath/argv/cwd → self-delete
-[host]    terminate after the HTTP response flushes
-[client]  poll health → confirm new instanceId → auto reload
+用户点击重启
+    ↓
+显示过渡动画
+    ↓
+启动独立 helper 进程
+    ↓
+等待旧进程退出
+    ↓
+释放端口
+    ↓
+以原命令行重新拉起
+    ↓
+页面自动重连
 ```
 
-Shutdown posts `/api/dsh-power-xc/shutdown` and terminates without relaunching. Because it is irreversible (the process must be started manually), the GUI **confirms shutdown in a dialog** before it fires — a second click is required. (`/shutdown` and the model tool remain single-action by design; the model never exposes shutdown.)
+## 🔒 安全设计
 
-Design notes (from real issues hit during development):
+- **分离进程**：helper 独立于主进程运行
+- **超时保护**：30 秒超时机制
+- **状态监控**：健康检查端点
+- **优雅退出**：会话刷新不会阻塞重启
 
-- The helper must run **outside the process tree** (`detached` + `unref`), otherwise terminating DSH kills the helper mid-flight.
-- The helper is a **real `.cjs` file**, not `node -e`: multi-line `node -e` scripts are mangled by Windows `CreateProcess` and die with a silent `SyntaxError`.
-- Restart success is confirmed by a per-process `instanceId` that must **change** (old → new), so a brief outage alone never fakes success.
-- **Durable-write quiescence**: after the old process exits and the port frees, the helper polls every session log's `(size, mtimeMs)` until two consecutive samples are identical (bounded at ~15s) before relaunching. The old process's session write-behind buffer can keep draining after its main loop exits; relaunching into a file that is still being appended interleaves stale seq numbers and corrupts the session — this check closes that window.
+## 📄 许可证
 
-## Safety
+[MIT](LICENSE)
 
-- Destructive POSTs are protected by a **same-origin / loopback guard** (CSRF): the socket must be loopback, `Host` must be a loopback authority, and a browser `Origin` must match.
-- An **at-most-once latch** rejects duplicate transitions (a concurrent second POST gets `409`).
-- The model tool's `delayMs` is **floored at 1000 ms** — the model cannot kill the process before its own turn settles.
-- The restart marker is **consumed (deleted) on boot**, so a later ordinary launch never misreports a restart.
-- Command-line logging is **redacted** (credentials never reach `~/.dsh/restart-helper-<pid>.log`); helper and marker files are written `0600`, the runtime directory `0700`.
+## 🔗 链接
 
-## Restart confirmation — UI toast, never written into a session
-
-After a successful restart the plugin shows a small localized toast
-("Restarted" / "已重启" depending on the UI language) in the corner of the UI.
-This is **purely a UI notice**: nothing is written into any session log. (This
-replaced an earlier design that
-appended a synthetic `assistant/message` (`turn: 0, step: 0`) into the resumed
-conversation — that approach tripped the token-meter's step-pairing invariant
-and could corrupt large sessions, so it was removed. Tracked upstream:
-[deepseek-ai/DeepSeek-Harness#802](https://github.com/deepseek-ai/deepseek-harness/discussions/802).)
-
-Mechanics:
-- On boot, if the restart marker was consumed, `/health` reports
-  `restarted: true, fromInstanceId: <old>`.
-- The client checks `/health` once after load; when `restarted` is true it
-  shows the toast, then ACKs via `POST /api/dsh-power-xc/notice-shown`
-  so a later refresh does not re-show it.
-- Because the confirmation never touches a session file, a restart can no
-  longer corrupt session logs or leave unpaired events behind.
-
-## Development
-
-```sh
-npm run build        # tsdown: host + client bundle
-npm run typecheck    # tsc --noEmit
-npm test             # vitest: marker lifecycle, delayMs clamp, argv redaction, log pruning
-```
-
-Tests isolate `DSH_HOME` via a vitest setup file, so they never touch your
-real `~/.dsh`. Artifacts: host at `lib/index.js`, client bundle at
-`lib/client.js` (both committed — git installs are build-free).
-
-## License & Attribution
-
-MIT. The "detached helper relaunch" idea follows [anweat/dsh-restart](https://github.com/anweat/dsh-restart) (MIT); the implementation is independently written (real `.cjs` file, no PowerShell, dynamic port), no code copied.
+- [GitHub](https://github.com/xchannel1987/dsh-power-xc)
+- [npm](https://www.npmjs.com/package/dsh-power-xc)
+- [问题反馈](https://github.com/xchannel1987/dsh-power-xc/issues)
