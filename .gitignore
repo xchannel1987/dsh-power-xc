@@ -1,4 +1,5 @@
 *.tgz
+dist/
 node_modules/
 *.log
 restart-helper.ps1

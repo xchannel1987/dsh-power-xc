@@ -141,16 +141,17 @@ export function RestartButton(props: RestartButtonProps): JSX.Element {
         style={{
           display: 'flex',
           alignItems: 'center',
-          gap: 8,
-          width: 'calc(100% + 8px)',
+          justifyContent: props.wide ? undefined : 'center',
+          gap: props.wide ? 8 : 0,
+          width: props.wide ? 'calc(100% + 8px)' : 36,
           minWidth: 0,
-          height: 34,
-          margin: '4px -4px 4px',
+          height: props.wide ? 34 : 36,
+          margin: props.wide ? '4px -4px 4px' : '8px 0 10px',
           boxSizing: 'border-box',
-          padding: '6px 2px 6px 10px',
+          padding: props.wide ? '6px 2px 6px 10px' : 0,
           flex: 'none',
           border: 'none',
-          borderRadius: radius.surface,
+          borderRadius: props.wide ? radius.surface : '50%',
           background: open ? 'var(--dsw-alias-bg-layer-2, rgba(255,255,255,0.06))' : 'transparent',
           // Pressed state: a hairline highlight edge + faint inner shadow reads
           // as physically "pushed" when the menu is open, not just dimmed.
@@ -168,13 +169,13 @@ export function RestartButton(props: RestartButtonProps): JSX.Element {
         onMouseEnter={(e) => { if (!busy) (e.currentTarget as HTMLButtonElement).style.background = 'var(--dsw-alias-interactive-bg-hover, rgba(255,255,255,0.06))' }}
         onMouseLeave={(e) => { if (!open) (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
       >
-        {/* power glyph, 16px like the settings gear; spinner while a flow runs */}
+        {/* power glyph, 18px like the settings gear; spinner while a flow runs */}
         {busy ? (
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" style={{ flex: '0 0 auto', animation: 'dsh-power-btn-spin 0.9s linear infinite' }}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true" style={{ flex: '0 0 auto', animation: 'dsh-power-btn-spin 0.9s linear infinite' }}>
             <circle cx="12" cy="12" r="8" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeDasharray="34 16" />
           </svg>
         ) : (
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" style={{ flex: '0 0 auto' }}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true" style={{ flex: '0 0 auto' }}>
             <path d="M12 3v8" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" />
             <path d="M7.5 5.6a8 8 0 1 0 9 0" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" />
           </svg>
