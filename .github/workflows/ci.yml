@@ -1,3 +1,6 @@
+# TS 族：src/ 是权威源码，lib/ 是 tsdown 构建产物（提交入库以支持免构建安装）。
+# 因此这里校验“能构建 + 类型通过 + 产物存在”，不做 src↔lib 逐字节比对 ——
+# 本仓库的 sourcemap 会内嵌本机绝对路径，跨平台重建的字节必然不同。
 name: ci
 on:
   push:
@@ -11,18 +14,24 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      
+
       - uses: pnpm/action-setup@v4
-      
+
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: pnpm
-      
+
       - run: pnpm install --frozen-lockfile
-      
+
+      - run: pnpm run build
+
+      - run: pnpm run typecheck
+
+      - run: pnpm test
+
       - name: Verify lib files exist
         run: |
-          test -f lib/index.js || (echo "lib/index.js not found" && exit 1)
-          test -f lib/client.js || (echo "lib/client.js not found" && exit 1)
+          test -f lib/index.js || (echo "❌ lib/index.js not found" && exit 1)
+          test -f lib/client.js || (echo "❌ lib/client.js not found" && exit 1)
           echo "✅ All lib files present"
