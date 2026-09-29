@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.6] - 2026-10-01
+
+### Fixed
+- **适配 DSH 0.2.0-rc.1（`@deepseek-ai/dsh-client-runtime` 已删除）**：
+  - `src/client/index.ts` 的 `ClientContext` 类型来源从 `@deepseek-ai/dsh-client-runtime/client` 改为
+    `@deepseek-ai/cordis` 的 `Context`（0.2.0 的等价类型，与官方 client 插件一致），否则下次
+    `src → lib` 重建 typecheck 会因找不到该包而失败。
+  - 清理 `package.json`：移除 `dsh-client-runtime` 的 `client.inject` / `peerDependencies` /
+    `devDependencies` 条目，并补 `@deepseek-ai/cordis` 到 `devDependencies` 供独立 typecheck 解析。
+  - `engines.dsh` 提升为 `>=0.2.0-rc.1`（DSH 兼容性说明同步更新）。
+
 ## [0.1.5] - 2026-09-24
 
 ### Chore

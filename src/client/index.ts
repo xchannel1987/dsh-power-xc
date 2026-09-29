@@ -9,7 +9,7 @@
  * this plugin's host half (POST /api/dsh-power-xc/{restart,shutdown}),
  * so it works standalone with no dependency on any other plugin.
  */
-import type { ClientContext } from '@deepseek-ai/dsh-client-runtime/client'
+import type { Context as ClientContext } from '@deepseek-ai/cordis'
 import type {} from '@deepseek-ai/dsh-client-ui-slots'
 import { RestartButton } from './RestartButton.tsx'
 import { RestartNotice } from './RestartNotice.tsx'
@@ -66,6 +66,10 @@ interface LocaleServiceLike {
 /** Loose view of the client context services we touch (iterate-over-host drift). */
 type ClientServices = {
   locale: LocaleServiceLike
+  slots: {
+    inject(name: string, factory: () => unknown): unknown
+    register(definition: object, Component: unknown): unknown
+  }
   on?: (name: string, handler: (...args: unknown[]) => void) => () => void
 }
 

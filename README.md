@@ -10,6 +10,8 @@
 **DSH 电源管理插件** —— 为 DeepSeek Harness 提供优雅的重启和关机功能，支持 Web UI 一键操作。
 
 > 本插件基于 [dsh-power-button](https://github.com/keyiadiannao/dsh-power-button) 开发，在其基础上进行了改进和优化。
+>
+> **宿主要求**：DSH ≥ `0.2.0-rc.1`（`engines.dsh`）。0.2.0 起 `@deepseek-ai/dsh-client-runtime` 已从宿主移除，本插件 client 端类型相应改由 `@deepseek-ai/cordis` 的 `Context` 提供。
 
 ## ✨ 核心特性
 

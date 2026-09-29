@@ -1,6 +1,6 @@
 {
   "name": "dsh-power-xc",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "Self-contained power control for DSH: sidebar power button with an upward 重启/关机 menu plus a Windows-shutdown-style overlay. Own restart & shutdown engine (no dependency on other plugins), MIT licensed.",
   "type": "module",
   "main": "./lib/index.js",
@@ -29,9 +29,8 @@
     "client": {
       "platform": "web",
       "inject": [
-        "@deepseek-ai/dsh-client-runtime",
-        "@deepseek-ai/dsh-client-ui-slots",
-        "@deepseek-ai/dsh-client-locale"
+        "@deepseek-ai/dsh-client-locale",
+        "@deepseek-ai/dsh-client-ui-slots"
       ]
     }
   },
@@ -44,7 +43,6 @@
   "peerDependencies": {
     "@deepseek-ai/cordis": "^4.0.1",
     "@deepseek-ai/dsh-client-locale": ">=0.1.0-rc.6",
-    "@deepseek-ai/dsh-client-runtime": ">=0.1.0-rc.6",
     "@deepseek-ai/dsh-client-ui-slots": ">=0.1.0-rc.6",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
@@ -58,8 +56,8 @@
     }
   },
   "devDependencies": {
+    "@deepseek-ai/cordis": "^4.0.1",
     "@deepseek-ai/dsh-client-locale": "^0.1.0-rc.6",
-    "@deepseek-ai/dsh-client-runtime": "^0.1.0-rc.6",
     "@deepseek-ai/dsh-client-ui-primitives": "^0.1.0-rc.6",
     "@deepseek-ai/dsh-client-ui-slots": "^0.1.0-rc.6",
     "@deepseek-ai/schemastery": "^3.18.1",
@@ -75,7 +73,7 @@
   "packageManager": "pnpm@9.15.9",
   "engines": {
     "node": ">=22.19",
-    "dsh": ">=0.1.0-rc.6"
+    "dsh": ">=0.2.0-rc.1"
   },
   "license": "MIT",
   "keywords": [
