@@ -11,6 +11,11 @@ interface Config {
   enableModelTool: boolean;
   /** Upper bound (ms) for the model tool's delayMs argument. */
   maxDelayMs: number;
+  /** Compact sidebar panel strip: the sidebar's global-panel rows (插件 /
+   *  自动化任务 / …) plus the 更多 launcher render as ONE row of icon-only
+   *  pills, with the label moved into a native-shaped hover tooltip. Off by
+   *  default; the client half follows this value live (设置 → 插件). */
+  compactPanelRows: boolean;
 }
 /** Schemastery schema; cordis validates and provides it as apply(ctx, config). */
 declare const Config: z<Config>;

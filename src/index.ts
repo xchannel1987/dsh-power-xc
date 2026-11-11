@@ -68,6 +68,24 @@ export interface Config {
   enableModelTool: boolean
   /** Upper bound (ms) for the model tool's delayMs argument. */
   maxDelayMs: number
+  /** Compact sidebar panel strip: the sidebar's global-panel rows (插件 /
+   *  自动化任务 / …) plus the 更多 launcher render as ONE row of icon-only
+   *  pills, with the label moved into a native-shaped hover tooltip. Off by
+   *  default; the client half follows this value live (设置 → 插件). */
+  compactPanelRows: boolean
+}
+
+/**
+ * Mark a config field as live-settable ("volatile"): cordis applies the change
+ * without reloading the plugin. The flag exists in cosmokit's `Meta` (and in
+ * the schemastery bundled with DSH), but this package's pinned schemastery
+ * typings predate it, so tag through a narrow structural view instead of
+ * widening the dependency. `extra()` returns a schema copy, hence the return.
+ */
+function liveSettable<T>(schema: T): T {
+  const target = schema as unknown as { extra?: (key: string, value: unknown) => T }
+  if (typeof target.extra !== 'function') return schema
+  return target.extra('volatile', true) ?? schema
 }
 
 /** Schemastery schema; cordis validates and provides it as apply(ctx, config). */
@@ -79,6 +97,9 @@ export const Config: z<Config> = z.object({
   // value silently defeat the 1000ms floor (e.g. maxDelayMs: 200 → clamp
   // returns 200), so reject it at schema validation time.
   maxDelayMs: z.number().default(5000).min(1000),
+  // Live-settable: the client half reads it from the settings mirror and
+  // re-applies the layout on change, so a toggle needs no plugin reload.
+  compactPanelRows: liveSettable(z.boolean().default(false)),
 })
 
 const BASE = '/api/dsh-power-xc'
@@ -693,6 +714,9 @@ export function apply(ctx: any, config: Config) {
             instanceId: INSTANCE_ID,
             pluginVersion: PLUGIN_VERSION,
             lifecycle: powerTransition ?? (restartConfirmation !== null ? 'restarted' : 'ready'),
+            // Effective UI config, so a client that cannot reach the settings
+            // service still learns the opt-in layout flags.
+            compactPanelRows: config.compactPanelRows === true,
           }
           if (restartConfirmation !== null) {
             body.restarted = true

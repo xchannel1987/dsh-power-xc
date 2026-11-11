@@ -11,7 +11,10 @@
  */
 import type { Context as ClientContext } from '@deepseek-ai/cordis'
 import type {} from '@deepseek-ai/dsh-client-ui-slots'
-import { RestartButton } from './RestartButton.tsx'
+import { RestartButton, powerCss } from './RestartButton.tsx'
+import { compactPanelsCss, installCompactPanels, PanelRowTooltip } from './compactPanels.tsx'
+import { bindSettingsContext, PowerSettingsCard, powerSettingsCss } from './PowerSettingsCard.tsx'
+import { PLUGIN_ID } from './settings.ts'
 import { RestartNotice } from './RestartNotice.tsx'
 import { RestartOverlay } from './RestartOverlay.tsx'
 import { RestartPreparing } from './RestartPreparing.tsx'
@@ -53,6 +56,14 @@ declare module '@deepseek-ai/dsh-client-ui-slots' {
       kind: 'list'
       scope: 'root'
       owner: Record<string, unknown>
+    }
+    /** A bundle's own configuration on its page in 设置 → 插件, keyed by the npm
+     *  package name. The page only renders the section for bundles that
+     *  contribute here — a Host schema alone draws nothing. */
+    'plugins.bundle.config': {
+      kind: 'keyed'
+      scope: 'root'
+      owner: { view?: 'summary' | 'page' }
     }
   }
 }
@@ -385,17 +396,43 @@ export function apply(ctx: ClientContext & ClientServices): void {
   if (styleEl === null) {
     styleEl = document.createElement('style')
     styleEl.id = STYLE_ID
-    // 1) Kept from the fork base: the full-width footer button needs the
-    //    footer-actions container to wrap (one full-width occupant per row).
-    // 2) Power menu below the Settings menu: footArea is a column flex, so re-
-    //    order the two areas with `order` — Settings first, actions after.
-    styleEl.textContent = [
-      '[class$="_footerActions"]:has(.dsh-power-button) { flex-wrap: wrap; }',
-      '[class$="_settingsArea"] { order: 1; }',
-      '[class$="_footerActions"] { order: 2; }',
-    ].join('\n')
     document.head.appendChild(styleEl)
   }
+  // 1) Kept from the fork base: a full-width footer action needs the footer-
+  //    actions container to wrap (one full-width occupant per row).
+  // 2) Power row below the Settings menu: footArea is a column flex, so re-
+  //    order the two areas with `order` — Settings first, actions after.
+  // 3) The button/menu state CSS (hover, focus ring, expanded fill, danger
+  //    items) is plugin-owned and lives next to the component.
+  // Always re-assign so a hot reload picks up the current rules.
+  styleEl.textContent = [
+    '[class$="_footerActions"]:has(.dsh-power-button) { flex-wrap: wrap; }',
+    '[class$="_settingsArea"] { order: 1; }',
+    '[class$="_footerActions"] { order: 2; }',
+    powerCss,
+    // Opt-in compact panel strip (see compactPanels.tsx). Static rules gated by
+    // an html attribute, so they are harmless while the option is off.
+    compactPanelsCss,
+    // Settings card on 设置 → 插件 → dsh-power-xc.
+    powerSettingsCss,
+  ].join('\n')
+
+  // Settings card: DSH's Plugins page renders a bundle's configuration section
+  // only for bundles that contribute one into `plugins.bundle.config` (keyed by
+  // the npm package name) — the Host schema alone shows nothing there.
+  bindSettingsContext(ctx as unknown as { get?: (name: string) => unknown })
+  ctx.slots.inject('plugins.bundle.config', () =>
+    ctx.slots.register({
+      name: 'plugins.bundle.config',
+      key: PLUGIN_ID,
+      order: 20,
+      locale: NS,
+    }, PowerSettingsCard))
+
+  // Follow the `compactPanelRows` config (default off): the setting lives in
+  // the Host plugin's settings namespace and is re-read on every change.
+  ctx.effect(() => installCompactPanels(ctx as unknown as { get?: (name: string) => unknown }),
+    'dsh-power-xc: compact panel strip')
 
   ctx.slots.inject('sidebar.footer.action', () =>
     ctx.slots.register({
@@ -423,6 +460,14 @@ export function apply(ctx: ClientContext & ClientServices): void {
       id: 'dsh-restart-preparing',
       locale: NS,
     }, RestartPreparing))
+
+  // Label bubbles for the compact panel strip (only rendered while the
+  // `compactPanelRows` option is on).
+  ctx.slots.inject('shell.overlay', () =>
+    ctx.slots.register({
+      name: 'shell.overlay',
+      id: 'dsh-power-panel-tooltip',
+    }, PanelRowTooltip))
 
   // UI-only "已重启" toast: shown once after a restart via /health's
   // `restarted` flag. Lives in the same additive overlay slot; unlike the

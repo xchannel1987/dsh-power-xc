@@ -1,8 +1,12 @@
 /**
  * dsh-power-xc design tokens — the plugin's own semantic layer, mapped
- * onto the DSH theme (`--dsw-alias-*`) with explicit fallbacks. Keeping one
- * source of truth here means a future visual pass touches one file instead of
- * every component.
+ * onto the DSH theme (`--dsw-alias-*`, `--dsw-*`, `--dsh-sidebar-*`) with
+ * explicit fallbacks. Keeping one source of truth here means a future visual
+ * pass touches one file instead of every component.
+ *
+ * `row` / `menu` mirror the native DSH sidebar footer row and the native
+ * `Menu` primitive (same metrics, same tokens), so this plugin's additive
+ * surface reads as part of the shell instead of a foreign control.
  */
 
 /** Motion: duration tiers + one shared easing. */
@@ -36,6 +40,51 @@ export const shadow = {
   surface: '0 10px 30px rgba(0, 0, 0, 0.28)',
   /** modals */
   modal: '0 18px 56px rgba(0, 0, 0, 0.36)',
+} as const
+
+/**
+ * Sidebar footer row — byte-equivalent to the native rows that live directly
+ * above it (ui-settings-account `AccountMenu` trigger / ui-settings-general
+ * `SettingsRoot` trigger):
+ *   height 42, inline padding = row-padding − paint-inset, a paint-inset
+ *   border so the hover pill is inset like its siblings, radius-md (12),
+ *   14px/22px label, `--dsw-alias-interactive-bg-hover` for hover / focus /
+ *   expanded, 16px glyph (18px in the 36px collapsed rail).
+ * The `--dsh-sidebar-*` variables are declared on the sidebar root and
+ * inherited down to the footer; the fallbacks match that declaration.
+ */
+export const row = {
+  height: 42,
+  railSize: 36,
+  gap: 'var(--dsh-sidebar-label-gap, 6px)',
+  inlinePadding: 'calc(var(--dsh-sidebar-row-padding, 12px) - var(--dsh-sidebar-paint-inset, 3px))',
+  paintInset: 'var(--dsh-sidebar-paint-inset, 3px)',
+  radius: 'var(--dsw-radius-md, 12px)',
+  /** glyph size: the native trigger is 16px wide, 18px on the rail */
+  glyphWide: 16,
+  glyphRail: 18,
+} as const
+
+/**
+ * Floating menu — the native `Menu` primitive's surface and item metrics:
+ * 4px padding on radius-lg (16), `--dsw-menu-surface-fill` + backdrop blur,
+ * `--dsw-elevation-prominent` shadow, 34px items on radius-md, 13px/20px
+ * labels, 14px `--dsw-alias-menu-icon` glyphs, danger = error primary with
+ * `--dsw-alias-interactive-bg-hover-danger`.
+ */
+export const menu = {
+  padding: 4,
+  radius: 'var(--dsw-radius-lg, 16px)',
+  background: 'var(--dsw-menu-surface-fill, var(--dsw-alias-bg-layer-2, #fcfdfe))',
+  backdrop: 'var(--dsw-menu-backdrop-filter, blur(40px) saturate(150%))',
+  shadow: 'var(--dsw-elevation-prominent, 0 3px 8px rgba(0, 0, 0, 0.04), 0 0 20px rgba(0, 0, 0, 0.05))',
+  itemHeight: 34,
+  itemPadding: '6px 8px',
+  itemRadius: 'var(--dsw-radius-md, 12px)',
+  itemGap: 6,
+  iconSize: 14,
+  fontSize: 13,
+  lineHeight: '20px',
 } as const
 
 /** Full-screen lifecycle overlay veil: translucent + strong blur — the page is

@@ -19,6 +19,8 @@
 - **自包含重启引擎**:写一个 detached 的 `.cjs` helper,等旧进程退出、端口释放后,用相同的 `execPath/execArgv/argv/cwd` 重新拉起 DSH。不使用 PowerShell、不使用 `taskkill`
 - **`/restart` 与 `/shutdown` 命令**,以及 **`restart_harness` 模型工具**(与 `anweat/dsh-restart` 同名;若名字已被其它插件占用则跳过注册)
 - **界面与宿主文案本地化**(中文 / English),跟随 profile 的 `locale.preference`
+- **紧凑全局面板条**(可选,默认关闭):把侧栏的"插件 / 自动化任务 / 更多"等全局面板行收成一行图标,
+  文字改成 hover 提示(气泡沿用 DSH 原生 Tooltip 的样式与 500ms 延迟),开启方式见下方配置项 `compactPanelRows`
 - **启动清理**:自动清理运行目录下超过 7 天的 `restart-helper-*.log`
 
 ## 刷新 vs 重启
@@ -77,6 +79,7 @@ dsh plugin --profile web add file:D:/workspace/dsh-power-xc/dsh-power-xc-0.1.0.t
 |---|---|---|
 | `enableModelTool` | `true` | 注册 `restart_harness` 模型工具。设 `false` 则重启仅保留在 GUI 按钮与 `/restart`。 |
 | `maxDelayMs` | `5000` | 模型工具 `delayMs` 参数的上限(ms)。有效下限为 1000 ms。 |
+| `compactPanelRows` | `false` | 紧凑全局面板条:侧栏的"插件 / 自动化任务 / 更多"等面板行排成一行图标,文字移到 hover 提示。收起态(56px 轨道)不受影响。 |
 
 示例:
 
@@ -84,7 +87,10 @@ dsh plugin --profile web add file:D:/workspace/dsh-power-xc/dsh-power-xc-0.1.0.t
 - id: dsh-power-xc
   config:
     enableModelTool: true
+    compactPanelRows: false   # 可选:面板行收成一行图标 + hover 文字
 ```
+
+也可以在「设置 → 插件 → dsh-power-xc」里直接开关 `compactPanelRows`,改完立即生效(无需刷新)。
 
 ## 工作原理
 

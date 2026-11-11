@@ -51,6 +51,13 @@ export const zh = {
   // toast — restart complete (UI-only, never written into the session log)
   restartedToast: '已重启',
   restartedToastSub: 'DeepSeek Harness 已重启完成',
+  // settings card (设置 → 插件 → dsh-power-xc)
+  settingsTitle: '电源',
+  settingsDesc: '侧边栏电源按钮与菜单的界面选项。',
+  settingsCompactLabel: '紧凑全局面板行',
+  settingsCompactHint: '侧边栏的「插件 / 自动化任务 / 更多」收成一行图标，文字改为 hover 提示；收起态不受影响，改完即时生效。',
+  settingsModelToolLabel: '模型重启工具',
+  settingsModelToolHint: '允许模型调用 restart_harness 主动重启；关闭后重启只保留 GUI 按钮与 /restart。改动需重启 DSH 生效。',
 } as const
 
 export const en = {
@@ -99,4 +106,11 @@ export const en = {
   // toast — restart complete (UI-only, never written into the session log)
   restartedToast: 'Restarted',
   restartedToastSub: 'DeepSeek Harness restarted successfully',
+  // settings card (Settings → Plugins → dsh-power-xc)
+  settingsTitle: 'Power',
+  settingsDesc: 'Interface options for the sidebar power button and its menu.',
+  settingsCompactLabel: 'Compact panel row',
+  settingsCompactHint: 'Collapse the sidebar\'s plugin / schedules / more rows into a single row of icons with hover labels; the collapsed rail is untouched. Applies immediately.',
+  settingsModelToolLabel: 'Model restart tool',
+  settingsModelToolHint: 'Let the model call restart_harness to restart DSH; off keeps restart on the GUI button and /restart only. Takes effect after a DSH restart.',
 } as const

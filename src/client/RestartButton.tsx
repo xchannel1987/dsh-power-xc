@@ -1,13 +1,16 @@
 /**
- * Sidebar footer power button + upward menu (重启 / 关机).
+ * Sidebar footer power button + upward menu (刷新 / 重启 / 关机).
  *
- * The button geometry is a byte-for-byte replica of the adjacent Settings
- * trigger (ui-settings-general SettingsRoot.module.css .trigger): 34px compact
- * row, `calc(100% + 8px)` width with -4px side margins, 8px icon gap, 10px
- * left padding, 22px line-height, 16px icon, radius and theme-token hover.
- * Driven by DSH theme tokens — follows light/dark automatically. Clicking
- * opens an upward menu anchored above the button; picking an action starts
- * the full-screen restart/shutdown overlay.
+ * Visual layer: the trigger is modelled on the native sidebar footer rows that
+ * sit directly above it (ui-settings-account `AccountMenu` / ui-settings-general
+ * `SettingsRoot` trigger) — 42px row, paint-inset border + row padding,
+ * `--dsw-radius-md` pill, 14px/22px label, hover/focus/expanded fills from
+ * `--dsw-alias-interactive-bg-hover` with the native focus ring, 16px glyph
+ * (18px on the 36px rail). The menu is modelled on the native `Menu` primitive
+ * (surface, shadow, 34px items, 13px/20px labels, menu icon colour, danger
+ * palette). State styling lives in `powerCss` (injected once by the plugin),
+ * geometry lives inline because it differs between the wide row and the rail.
+ * Everything is driven by DSH theme tokens, so light/dark follow automatically.
  */
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import type { PropsLocale } from '@deepseek-ai/dsh-client-ui-slots'
@@ -15,19 +18,21 @@ import type {} from '@deepseek-ai/dsh-client-ui-slots'
 import { Tooltip } from '@deepseek-ai/dsh-client-ui-primitives'
 import { beginPower, getRestartPhase, onRestartChange, NS } from './index.ts'
 import { ShutdownConfirm } from './ShutdownConfirm.tsx'
-import { motion, radius, shadow } from './theme.ts'
+import { menu, motion, row } from './theme.ts'
 
 export type RestartButtonProps = { wide: boolean } & PropsLocale<typeof NS>
 
+/** Comfortable menu width (native menus clamp between 144px and 360px). */
 const MENU_W = 212
+/** Gap between the trigger and the menu — the native anchored-menu gap. */
+const MENU_GAP = 6
 
 export function RestartButton(props: RestartButtonProps): JSX.Element {
   const { t } = props
   const [open, setOpen] = useState(false)
   // Whether the menu was opened via keyboard (ArrowDown/ArrowUp on the trigger).
   // WAI-ARIA menu-button moves focus into the menu only on KEYBOARD open; a
-  // mouse click must not steal focus — the native Tooltip bubbles on focus, so
-  // click-opening would pop the first item's tooltip as a side effect.
+  // mouse click must not steal focus.
   const [openViaKeyboard, setOpenViaKeyboard] = useState(false)
   // Shutdown is irreversible (the process exits and must be started manually),
   // so it always passes through a confirm dialog before beginPower('shutdown').
@@ -39,11 +44,12 @@ export function RestartButton(props: RestartButtonProps): JSX.Element {
   // starts (and back once it settles).
   const phase = useSyncExternalStore(onRestartChange, getRestartPhase)
   const busy = phase !== 'idle' && phase !== 'error'
+  const glyphSize = props.wide ? row.glyphWide : row.glyphRail
 
   // Close on outside click or Escape; move focus into the menu on open and
   // back to the trigger on close (WAI-ARIA menu-button pattern). Focus moves
   // into the menu only when opened by keyboard — a mouse click leaves focus on
-  // the trigger (otherwise the first item's native Tooltip would pop on click).
+  // the trigger.
   useEffect(() => {
     if (!open) return
     if (openViaKeyboard) {
@@ -92,7 +98,7 @@ export function RestartButton(props: RestartButtonProps): JSX.Element {
   // Anchor the menu above the button, right-aligned to its right edge.
   // No hardcoded menu height: measure the rendered menu via menuRef and offset
   // by its ACTUAL height, so it never overlaps the button regardless of item
-  // count, wrapping, or font scaling. Width is responsive: at least 16px gutter
+  // count, wrapping, or font scaling. Width is responsive: at least 8px gutter
   // on narrow viewports, capped at the menu's comfortable width.
   const anchor = (): React.CSSProperties => {
     const r = btnRef.current?.getBoundingClientRect()
@@ -103,16 +109,21 @@ export function RestartButton(props: RestartButtonProps): JSX.Element {
     return {
       position: 'fixed',
       left: Math.max(8, r.right - menuW),
-      top: Math.max(8, r.top - 8 - menuH),
+      top: Math.max(8, r.top - MENU_GAP - menuH),
       width: menuW,
     }
   }
 
+  // Native `Menu` surface tuning: the hairline stroke of the prominent
+  // elevation uses the menu border token, exactly like the native list.
+  const menuVars: React.CSSProperties & Record<string, string> = {
+    ['--dsw-elevation-stroke-color']: 'var(--dsw-alias-border-l1, rgba(0, 0, 0, 0.04))',
+  }
+
   return (
     <>
-      <style>{powerKeyframes}</style>
       {/* Sidebar-footer power trigger. Hover tooltip is the DSH-native bubble
-          (same Tooltip as the adjacent New Session / fold buttons), always
+          (same Tooltip as the adjacent settings / account triggers), always
           available in both rail and wide mode, and it follows the flow state
           when busy. The aria-label carries the same text (icon-only rail
           convention, mirroring native buttons whose tooltip text doubles as
@@ -142,45 +153,44 @@ export function RestartButton(props: RestartButtonProps): JSX.Element {
           display: 'flex',
           alignItems: 'center',
           justifyContent: props.wide ? undefined : 'center',
-          gap: props.wide ? 8 : 0,
-          width: props.wide ? 'calc(100% + 8px)' : 36,
+          gap: props.wide ? row.gap : 0,
+          width: props.wide ? '100%' : row.railSize,
           minWidth: 0,
-          height: props.wide ? 34 : 36,
-          margin: props.wide ? '4px -4px 4px' : '8px 0 10px',
+          height: props.wide ? row.height : row.railSize,
+          margin: props.wide ? '0 0 4px' : '8px 0 10px',
           boxSizing: 'border-box',
-          padding: props.wide ? '6px 2px 6px 10px' : 0,
-          flex: 'none',
+          // Native row geometry: the paint-inset border keeps the hover pill
+          // inset from the sidebar edge exactly like the account/settings rows,
+          // and the padding lands the glyph on the same 12px text line.
+          padding: props.wide ? `0 ${row.inlinePadding}` : 0,
           border: 'none',
-          borderRadius: props.wide ? radius.surface : '50%',
-          background: open ? 'var(--dsw-alias-bg-layer-2, rgba(255,255,255,0.06))' : 'transparent',
-          // Pressed state: a hairline highlight edge + faint inner shadow reads
-          // as physically "pushed" when the menu is open, not just dimmed.
-          boxShadow: open ? 'inset 0 1px 0 rgba(255,255,255,0.07), inset 0 0 0 1px rgba(255,255,255,0.05)' : undefined,
-          color: 'var(--dsw-alias-label-primary, #f2f6fc)',
+          borderInline: props.wide ? `${row.paintInset} solid transparent` : undefined,
+          borderRadius: row.radius,
+          color: 'var(--dsw-alias-label-primary)',
           font: 'inherit',
           fontSize: 14,
           lineHeight: '22px',
+          flex: 'none',
           cursor: busy ? 'default' : 'pointer',
-          opacity: busy ? 0.6 : 1,
+          opacity: busy ? 0.4 : 1,
           textAlign: 'left',
           overflow: 'hidden',
-          transition: `background ${motion.fast} ${motion.ease}, box-shadow ${motion.fast} ${motion.ease}, opacity ${motion.fast} ${motion.ease}`,
+          userSelect: 'none',
         }}
-        onMouseEnter={(e) => { if (!busy) (e.currentTarget as HTMLButtonElement).style.background = 'var(--dsw-alias-interactive-bg-hover, rgba(255,255,255,0.06))' }}
-        onMouseLeave={(e) => { if (!open) (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
       >
-        {/* power glyph, 18px like the settings gear; spinner while a flow runs */}
+        {/* power glyph — 16px like the settings gear (18px on the rail);
+            spinner while a flow runs */}
         {busy ? (
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true" style={{ flex: '0 0 auto', animation: 'dsh-power-btn-spin 0.9s linear infinite' }}>
+          <svg width={glyphSize} height={glyphSize} viewBox="0 0 24 24" fill="none" aria-hidden="true" style={{ flex: '0 0 auto', animation: 'dsh-power-btn-spin 0.9s linear infinite' }}>
             <circle cx="12" cy="12" r="8" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeDasharray="34 16" />
           </svg>
         ) : (
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true" style={{ flex: '0 0 auto' }}>
+          <svg width={glyphSize} height={glyphSize} viewBox="0 0 24 24" fill="none" aria-hidden="true" style={{ flex: '0 0 auto' }}>
             <path d="M12 3v8" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" />
             <path d="M7.5 5.6a8 8 0 1 0 9 0" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" />
           </svg>
         )}
-        {props.wide && <span>{t('power')}</span>}
+        {props.wide && <span className="dsh-power-label">{t('power')}</span>}
       </button>
       </Tooltip>
 
@@ -189,31 +199,36 @@ export function RestartButton(props: RestartButtonProps): JSX.Element {
           ref={menuRef}
           role="menu"
           aria-label={t('power')}
+          className="dsh-power-menu"
+          data-menu-material=""
           style={{
             ...anchor(),
+            ...menuVars,
             zIndex: 1500,
             boxSizing: 'border-box',
-            padding: 6,
-            borderRadius: radius.surface,
-            background: 'var(--dsw-alias-bg-layer-2, rgba(24,28,38,0.97))',
-            border: '1px solid var(--dsw-alias-border-l3, rgba(196,211,232,0.31))',
-            boxShadow: shadow.surface,
+            padding: menu.padding,
+            borderRadius: menu.radius,
+            background: menu.background,
+            backdropFilter: menu.backdrop,
+            WebkitBackdropFilter: menu.backdrop,
+            border: 0,
+            boxShadow: menu.shadow,
             fontFamily: 'inherit',
-            fontSize: 14,
-            color: 'var(--dsw-alias-label-primary, #f2f6fc)',
+            fontSize: menu.fontSize,
+            lineHeight: menu.lineHeight,
+            color: 'var(--dsw-alias-label-primary)',
             animation: `dsh-power-menu-in ${motion.menu} ${motion.ease}`,
           }}
         >
           <MenuItem
             label={t('refresh')}
-            title={t('refreshHint')}
             onClick={() => {
               setOpen(false)
               // Mirror mobile-xc's drawer refresh: a plain page reload.
               window.location.reload()
             }}
             glyph={
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true" style={{ flex: '0 0 auto' }}>
+              <svg width={menu.iconSize} height={menu.iconSize} viewBox="0 0 24 24" fill="none" aria-hidden="true">
                 <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
                 <path d="M21 3v5h-5" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
                 <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
@@ -223,10 +238,9 @@ export function RestartButton(props: RestartButtonProps): JSX.Element {
           />
           <MenuItem
             label={t('restart')}
-            title={t('restartHint')}
             onClick={() => pick('restart')}
             glyph={
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true" style={{ flex: '0 0 auto' }}>
+              <svg width={menu.iconSize} height={menu.iconSize} viewBox="0 0 24 24" fill="none" aria-hidden="true">
                 <path d="M20 12a8 8 0 1 1-2.34-5.66" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
                 <path d="M20 3v4h-4" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
@@ -234,12 +248,11 @@ export function RestartButton(props: RestartButtonProps): JSX.Element {
           />
           <MenuItem
             label={t('shutdown')}
-            title={t('shutdownHint')}
             hint={t('shutdownStops')}
             danger
             onClick={() => pick('shutdown')}
             glyph={
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true" style={{ flex: '0 0 auto' }}>
+              <svg width={menu.iconSize} height={menu.iconSize} viewBox="0 0 24 24" fill="none" aria-hidden="true">
                 <path d="M12 3v8" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
                 <path d="M7.5 5.6a8 8 0 1 0 9 0" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
               </svg>
@@ -266,81 +279,145 @@ export function RestartButton(props: RestartButtonProps): JSX.Element {
   )
 }
 
-function MenuItem({ label, title, hint, danger, onClick, glyph }: {
+/** One native-menu item: 14px glyph, ellipsised label, optional right-aligned
+ *  caption (the native shortcut slot), and the native danger palette. */
+function MenuItem({ label, hint, danger, onClick, glyph }: {
   label: string
-  title?: string
-  /** Small secondary semantics (e.g. "Stops Harness"), 11px at reduced opacity. */
+  /** Small secondary semantics (e.g. "停止 Harness"), 11px caption on the right. */
   hint?: string
-  /** Shutdown item: error tint appears on hover only — calm by default. */
+  /** Shutdown item: error tint + danger hover fill, like a native danger item. */
   danger?: boolean
   onClick: () => void
   glyph: JSX.Element
 }): JSX.Element {
-  const dangerHover = danger
-    ? 'color-mix(in srgb, var(--dsw-alias-state-error-primary, #ff8592) 10%, var(--dsw-alias-bg-layer-2, rgba(24,28,38,0.97)))'
-    : 'var(--dsw-alias-interactive-bg-hover, rgba(255,255,255,0.06))'
-  const item = (
+  return (
     <button
       type="button"
       role="menuitem"
+      className="dsh-power-menu-item"
+      data-danger={danger === true ? 'true' : undefined}
       onClick={onClick}
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 10,
-        width: '100%',
-        boxSizing: 'border-box',
-        minHeight: 38,
-        padding: '7px 10px',
-        border: 'none',
-        borderRadius: radius.control,
-        background: 'transparent',
-        color: 'var(--dsw-alias-label-primary, #f2f6fc)',
-        font: 'inherit',
-        fontSize: 14,
-        lineHeight: '22px',
-        cursor: 'pointer',
-        textAlign: 'left',
-        whiteSpace: 'nowrap',
-        transition: `background ${motion.fast} ${motion.ease}`,
-      }}
-      onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = dangerHover }}
-      onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
     >
-      {glyph}
-      <span style={{ display: 'flex', alignItems: 'baseline', gap: 8, lineHeight: '22px', whiteSpace: 'nowrap', flex: '1 1 auto', minWidth: 0 }}>
-        <span style={{ display: 'block', flex: 'none' }}>{label}</span>
-        {hint !== undefined && (
-          <span style={{ display: 'block', flex: 'none', fontSize: 11, opacity: 0.55, color: 'var(--dsw-alias-label-secondary, rgba(242,246,252,0.65))' }}>
-            {hint}
-          </span>
-        )}
-      </span>
+      <span className="dsh-power-menu-icon" aria-hidden="true">{glyph}</span>
+      <span className="dsh-power-menu-label">{label}</span>
+      {hint !== undefined && <span className="dsh-power-menu-hint">{hint}</span>}
     </button>
   )
-  // The item's hover tooltip is the same DSH-native bubble as the trigger
-  // button (default right side, 500ms hover delay) — replaces the old browser
-  // title attribute.
-  return title === undefined
-    ? item
-    : (
-      <Tooltip label={title} delayMs={500}>
-        {item}
-      </Tooltip>
-    )
 }
 
-/** Plugin-owned keyframes (self-contained; namespaced to avoid collisions).
- *  Menu entrance is a pure opacity fade — no transform. A transform (even a
- *  short entrance slide) would make this container the containing block for
- *  the position:fixed tooltip bubble rendered inside it, mispositioning it. */
-export const powerKeyframes = `
-  @keyframes dsh-power-menu-in {
-    from { opacity: 0; }
-    to   { opacity: 1; }
+/**
+ * Plugin-owned CSS: trigger + menu states and keyframes, injected once per
+ * document by the plugin entry (`apply()`). State rules live here rather than
+ * in inline handlers so hover/focus/expanded behave exactly like native rows
+ * under the same media/theme conditions.
+ */
+export const powerCss = `
+/* --- footer power button: native sidebar row states ---------------------- */
+.dsh-power-button {
+  /* transparent at rest, clipped to the padding box so the hover / expanded
+     pill stays inset behind the paint-inset border, like native rows */
+  background-color: transparent;
+  background-clip: padding-box;
+  transition: background-color var(--ds-transition-duration-fast, 100ms) var(--ds-ease-in-out, cubic-bezier(0.4, 0, 0.2, 1));
+}
+@media (hover: hover) {
+  .dsh-power-button:hover:not(:disabled) {
+    background-color: var(--dsw-alias-interactive-bg-hover);
   }
-  @keyframes dsh-power-btn-spin {
-    to { transform: rotate(360deg); }
-  }
-`
+}
+.dsh-power-button[aria-expanded='true'] {
+  background-color: var(--dsw-alias-interactive-bg-hover);
+}
+.dsh-power-button:focus-visible {
+  background-color: var(--dsw-alias-interactive-bg-hover);
+  outline: var(--dsw-focus-ring-width, 2px) solid var(--dsw-focus-ring-color, var(--dsw-alias-state-business-primary));
+  outline-offset: -2px;
+}
+.dsh-power-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
+/* --- menu: native Menu primitive surface + items ------------------------- */
+.dsh-power-menu-item {
+  display: flex;
+  align-items: center;
+  gap: ${menu.itemGap}px;
+  width: 100%;
+  min-height: ${menu.itemHeight}px;
+  padding: ${menu.itemPadding};
+  box-sizing: border-box;
+  border: none;
+  border-radius: ${menu.itemRadius};
+  background: transparent;
+  color: var(--dsw-alias-label-primary);
+  font: inherit;
+  font-size: ${menu.fontSize}px;
+  line-height: ${menu.lineHeight};
+  text-align: left;
+  cursor: pointer;
+}
+@media (hover: hover) {
+  .dsh-power-menu-item:hover:not(:disabled) {
+    background-color: var(--dsw-alias-interactive-bg-hover);
+  }
+  .dsh-power-menu-item[data-danger='true']:hover:not(:disabled) {
+    background-color: var(--dsw-alias-interactive-bg-hover-danger);
+  }
+}
+.dsh-power-menu-item:focus-visible {
+  background-color: var(--dsw-alias-interactive-bg-hover);
+  outline: none;
+}
+.dsh-power-menu-item[data-danger='true']:focus-visible {
+  background-color: var(--dsw-alias-interactive-bg-hover-danger);
+}
+.dsh-power-menu-item:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.dsh-power-menu-icon {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: ${menu.iconSize}px;
+  height: ${menu.iconSize}px;
+  color: var(--dsw-alias-menu-icon, var(--dsw-alias-label-secondary));
+}
+.dsh-power-menu-icon svg {
+  width: ${menu.iconSize}px;
+  height: ${menu.iconSize}px;
+}
+.dsh-power-menu-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.dsh-power-menu-hint {
+  flex: none;
+  margin-inline-start: auto;
+  color: var(--dsw-alias-label-caption, var(--dsw-alias-label-secondary));
+  font-size: 11px;
+  line-height: 16px;
+  white-space: nowrap;
+}
+.dsh-power-menu-item[data-danger='true'] {
+  color: var(--dsw-alias-state-error-primary);
+}
+.dsh-power-menu-item[data-danger='true'] .dsh-power-menu-icon {
+  color: inherit;
+}
+
+@keyframes dsh-power-menu-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes dsh-power-btn-spin {
+  to { transform: rotate(360deg); }
+}
+`
